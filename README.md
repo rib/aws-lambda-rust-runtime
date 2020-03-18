@@ -10,48 +10,22 @@ This package makes it easy to run AWS Lambda Functions written in Rust. This wor
 
 ## Example function
 
-The code below creates a simple function that receives an event with a `greeting` and `name` field and returns a `GreetingResponse` message for the given name and greeting. Notice: to run these examples, we require a minimum Rust version of 1.31.
+The code below creates a simple function that will echo an. Notice: to run these examples, we require a minimum Rust version of 1.39.
 
 ```rust,no_run
-use std::error::Error;
+use lambda::lambda;
+use serde_json::Value;
 
-use lambda_runtime::{error::HandlerError, lambda, Context};
-use log::{self, error};
-use serde_derive::{Deserialize, Serialize};
-use simple_error::bail;
-use simple_logger;
+type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-#[derive(Deserialize)]
-struct CustomEvent {
-    #[serde(rename = "firstName")]
-    first_name: String,
-}
-
-#[derive(Serialize)]
-struct CustomOutput {
-    message: String,
-}
-
-fn main() -> Result<(), Box<dyn Error>> {
-    simple_logger::init_with_level(log::Level::Debug)?;
-    lambda!(my_handler);
-
-    Ok(())
-}
-
-fn my_handler(e: CustomEvent, c: Context) -> Result<CustomOutput, HandlerError> {
-    if e.first_name == "" {
-        error!("Empty first name in request {}", c.aws_request_id);
-        bail!("Empty first name");
-    }
-
-    Ok(CustomOutput {
-        message: format!("Hello, {}!", e.first_name),
-    })
+#[lambda]
+#[tokio::main]
+async fn main(event: Value) -> Result<Value, Error> {
+    Ok(event)
 }
 ```
 
-The code above is the same as the [basic example](https://github.com/awslabs/aws-lambda-rust-runtime/tree/master/lambda-runtime/examples/basic.rs) in the `lambda-runtime` crate.
+The code above is the same as the [hello example](https://github.com/awslabs/aws-lambda-rust-runtime/blob/master/lambda/examples/hello.rs) in the `lambda` crate.
 
 ### Deployment
 
