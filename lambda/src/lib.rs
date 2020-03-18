@@ -235,14 +235,17 @@ where
 
             let req = match f.await {
                 Ok(res) => EventCompletionRequest { request_id, body: res }.into_req()?,
-                Err(err) => EventErrorRequest {
-                    request_id,
-                    diagnostic: Diagnostic {
-                        error_message: format!("{:?}", err),
-                        error_type: type_name_of_val(err).to_owned(),
-                    },
+                Err(err) => {
+                    eprintln!("Executor Error: {:?}", err);
+                    EventErrorRequest {
+                        request_id,
+                        diagnostic: Diagnostic {
+                            error_message: format!("{:?}", err),
+                            error_type: type_name_of_val(err).to_owned(),
+                        },
+                    }
+                    .into_req()?
                 }
-                .into_req()?,
             };
             client.call(req).await?;
             if once {
